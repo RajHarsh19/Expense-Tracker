@@ -1,14 +1,14 @@
 import mongoose from "mongoose";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 export const connectDB = async () => {
   try {
-    await mongoose.connect(
-      "mongodb+srv://HarshRaj:Harshraj19@cluster0.sdowghu.mongodb.net/Expense?retryWrites=true&w=majority",
-      {
-        useNewUrlParser: true,
-        useUnifiedTopology: true
-      }
-    );
+    await mongoose.connect(process.env.MONGO_URL, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true
+    });
 
     console.log("✅ MongoDB Atlas connected successfully!");
   } catch (error) {
