@@ -1,10 +1,18 @@
 import mongoose from "mongoose";
 
-export const connectDB = async (req, res) => {
-    const db = process.env.MONGO_URL;
+export const connectDB = async () => {
+  try {
+    await mongoose.connect(
+      "mongodb+srv://HarshRaj:Harshraj19@cluster0.sdowghu.mongodb.net/Expense?retryWrites=true&w=majority",
+      {
+        useNewUrlParser: true,
+        useUnifiedTopology: true
+      }
+    );
 
-    const {connection} = await mongoose.connect(db, { useNewUrlParser: true });
-
-    console.log(`MongoDB Connected to ${connection.host}`);
-
-}
+    console.log("✅ MongoDB Atlas connected successfully!");
+  } catch (error) {
+    console.error("❌ MongoDB connection failed:", error.message);
+    process.exit(1);
+  }
+};
