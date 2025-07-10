@@ -7,23 +7,26 @@ import helmet from "helmet";
 import morgan from "morgan";
 import transactionRoutes from "./Routers/Transactions.js";
 import userRoutes from "./Routers/userRouter.js";
-import path from "path";
 
+// Load environment variables
 dotenv.config({ path: "./config/config.env" });
+
 const app = express();
 
-const port = process.env.PORT;
+// Set port fallback for local/dev
+const port = process.env.PORT || 5000;
 
+// Connect to MongoDB
 connectDB();
 
+// Allowlisted frontend URLs
 const allowedOrigins = [
+  "https://expense-tracker-hazel-xi-95.vercel.app", // ✅ your deployed frontend
   "https://main.d1sj7cd70hlter.amplifyapp.com",
-  "https://expense-tracker-app-three-beryl.vercel.app",
-  // add more origins as needed
+  "https://expense-tracker-app-three-beryl.vercel.app"
 ];
 
 // Middleware
-app.use(express.json());
 app.use(
   cors({
     origin: allowedOrigins,
@@ -36,15 +39,18 @@ app.use(helmet.crossOriginResourcePolicy({ policy: "cross-origin" }));
 app.use(morgan("dev"));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
+app.use(express.json());
 
-// Router
+// Routes
 app.use("/api/v1", transactionRoutes);
 app.use("/api/auth", userRoutes);
 
+// Default route
 app.get("/", (req, res) => {
-  res.send("Hello World!");
+  res.send("Hello World! Backend is running.");
 });
 
+// Start server
 app.listen(port, () => {
-  console.log(`Server is listening on http://localhost:${port}`);
+  console.log(`✅ Server running on port ${port}`);
 });
