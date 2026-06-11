@@ -15,130 +15,66 @@ const Login = () => {
 
   const [loading, setLoading] = useState(false);
 
+  useEffect(() => {
+    if (localStorage.getItem("user")) {
+      navigate("/");
+    }
+  }, [navigate]);
+
   const [values, setValues] = useState({
     email: "",
     password: "",
   });
 
-  useEffect(() => {
-    const user = localStorage.getItem("user");
-
-    if (user) {
-      navigate("/");
-    }
-  }, [navigate]);
-
   const toastOptions = {
     position: "bottom-right",
-    autoClose: 3000,
+    autoClose: 2000,
     hideProgressBar: false,
     closeOnClick: true,
     pauseOnHover: false,
     draggable: true,
+    progress: undefined,
     theme: "dark",
   };
 
   const handleChange = (e) => {
-    setValues({
-      ...values,
-      [e.target.name]: e.target.value,
-    });
+    setValues({ ...values, [e.target.name]: e.target.value });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    try {
-      const { email, password } = values;
+    const { email, password } = values;
 
-      if (!email || !password) {
-        toast.error("Please enter all fields", toastOptions);
-        return;
-      }
+    setLoading(true);
 
-      setLoading(true);
+    const { data } = await axios.post(loginAPI, {
+      email,
+      password,
+    });
 
-      console.log("Login API:", loginAPI);
-
-      const response = await axios.post(
-        loginAPI,
-        {
-          email: email.trim().toLowerCase(),
-          password,
-        },
-        {
-          timeout: 15000,
-        }
-      );
-
-      console.log("Login Response:", response.data);
-
-      const data = response.data;
-
-      if (data.success) {
-        localStorage.setItem(
-          "user",
-          JSON.stringify(data.user)
-        );
-
-        toast.success(
-          data.message || "Login successful",
-          toastOptions
-        );
-
-        setTimeout(() => {
-          navigate("/");
-        }, 1000);
-      } else {
-        toast.error(
-          data.message || "Invalid credentials",
-          toastOptions
-        );
-      }
-    } catch (error) {
-      console.error("LOGIN ERROR:", error);
-
-      if (error.response) {
-        console.log(
-          "Server Response:",
-          error.response.data
-        );
-
-        toast.error(
-          error.response.data.message ||
-            "Login failed",
-          toastOptions
-        );
-      } else if (error.request) {
-        toast.error(
-          "Cannot connect to server",
-          toastOptions
-        );
-      } else {
-        toast.error(
-          "Something went wrong",
-          toastOptions
-        );
-      }
-    } finally {
+    if (data.success === true) {
+      localStorage.setItem("user", JSON.stringify(data.user));
+      navigate("/");
+      toast.success(data.message, toastOptions);
+      setLoading(false);
+    } else {
+      toast.error(data.message, toastOptions);
       setLoading(false);
     }
   };
 
   const particlesInit = useCallback(async (engine) => {
+    // console.log(engine);
     await loadFull(engine);
   }, []);
 
-  const particlesLoaded = useCallback(async () => {}, []);
+  const particlesLoaded = useCallback(async (container) => {
+    // await console.log(container);
+  }, []);
 
   return (
-    <div
-      style={{
-        position: "relative",
-        overflow: "hidden",
-        minHeight: "100vh",
-      }}
-    >
+    <div style={{ position: "relative", overflow: "hidden" }}>
       <Particles
         id="tsparticles"
         init={particlesInit}
@@ -152,7 +88,7 @@ const Login = () => {
           fpsLimit: 60,
           particles: {
             number: {
-              value: 50,
+              value: 200,
               density: {
                 enable: true,
                 value_area: 800,
@@ -170,10 +106,7 @@ const Login = () => {
             },
             size: {
               value: 3,
-              random: {
-                enable: true,
-                minimumValue: 1,
-              },
+              random: { enable: true, minimumValue: 1 },
             },
             links: {
               enable: false,
@@ -181,6 +114,20 @@ const Login = () => {
             move: {
               enable: true,
               speed: 2,
+            },
+            life: {
+              duration: {
+                sync: false,
+                value: 3,
+              },
+              count: 0,
+              delay: {
+                random: {
+                  enable: true,
+                  minimumValue: 0.5,
+                },
+                value: 1,
+              },
             },
           },
           detectRetina: true,
@@ -194,66 +141,42 @@ const Login = () => {
           bottom: 0,
         }}
       />
-
       <Container
         className="mt-5"
-        style={{
-          position: "relative",
-          zIndex: 2,
-        }}
+        style={{ position: "relative", zIndex: "2 !important" }}
       >
         <Row>
           <Col md={{ span: 6, offset: 3 }}>
             <h1 className="text-center mt-5">
               <AccountBalanceWalletIcon
-                sx={{
-                  fontSize: 40,
-                  color: "white",
-                }}
+                sx={{ fontSize: 40, color: "white" }}
+                className="text-center"
               />
             </h1>
-
-            <h2 className="text-white text-center">
-              Login
-            </h2>
-
-            <Form onSubmit={handleSubmit}>
-              <Form.Group
-                controlId="formBasicEmail"
-                className="mt-3"
-              >
-                <Form.Label className="text-white">
-                  Email Address
-                </Form.Label>
-
+            <h2 className="text-white text-center ">Login</h2>
+            <Form>
+              <Form.Group controlId="formBasicEmail" className="mt-3">
+                <Form.Label className="text-white">Email address</Form.Label>
                 <Form.Control
                   type="email"
                   placeholder="Enter email"
                   name="email"
-                  value={values.email}
                   onChange={handleChange}
+                  value={values.email}
                 />
               </Form.Group>
 
-              <Form.Group
-                controlId="formBasicPassword"
-                className="mt-3"
-              >
-                <Form.Label className="text-white">
-                  Password
-                </Form.Label>
-
+              <Form.Group controlId="formBasicPassword" className="mt-3">
+                <Form.Label className="text-white">Password</Form.Label>
                 <Form.Control
                   type="password"
-                  placeholder="Enter password"
                   name="password"
-                  value={values.password}
+                  placeholder="Password"
                   onChange={handleChange}
+                  value={values.password}
                 />
               </Form.Group>
-
               <div
-                className="mt-4"
                 style={{
                   width: "100%",
                   display: "flex",
@@ -261,35 +184,24 @@ const Login = () => {
                   justifyContent: "center",
                   flexDirection: "column",
                 }}
+                className="mt-4"
               >
-                <Link
-                  to="/forgotPassword"
-                  className="text-white lnk"
-                >
+                <Link to="/forgotPassword" className="text-white lnk">
                   Forgot Password?
                 </Link>
 
                 <Button
                   type="submit"
-                  className="mt-3 btnStyle"
+                  className=" text-center mt-3 btnStyle"
+                  onClick={!loading ? handleSubmit : null}
                   disabled={loading}
                 >
-                  {loading
-                    ? "Signing In..."
-                    : "Login"}
+                  {loading ? "Signin…" : "Login"}
                 </Button>
 
-                <p
-                  className="mt-3"
-                  style={{
-                    color: "#9d9494",
-                  }}
-                >
+                <p className="mt-3" style={{ color: "#9d9494" }}>
                   Don't Have an Account?{" "}
-                  <Link
-                    to="/register"
-                    className="text-white lnk"
-                  >
+                  <Link to="/register" className="text-white lnk">
                     Register
                   </Link>
                 </p>
@@ -297,7 +209,6 @@ const Login = () => {
             </Form>
           </Col>
         </Row>
-
         <ToastContainer />
       </Container>
     </div>
